@@ -1,0 +1,50 @@
+﻿﻿.click-item:active, .boost-button:active {
+    opacity: 0.7;
+}
+
+.boost-title {
+    font-size: 1.2rem; /* Уменьшенный размер шрифта для заголовков */
+}
+
+.boost-price-string, .boost-quantity {
+    font-size: 1rem; /* Уменьшенный размер шрифта для других текстов */
+}
+
+.boost-price {
+    font-size: 1rem; /* Для цены можно оставить чуть больший размер */
+}
+
+body {
+    overflow-x: hidden;
+    margin: 0;
+}
+
+.container, .row {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+h6 {
+    margin-bottom: 0.2rem; /* Уменьшаем отступы между строками */
+    line-height: 1.2; /* Уменьшаем межстрочный интервал */
+}
+
+#red-zone {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: red;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none; /* Изначально скрыта */
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+#clickitem {
+    user-select: none;
+    -webkit-user-drag: none; /* Запрет перетаскивания изображения */
+}

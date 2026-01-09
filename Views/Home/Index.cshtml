@@ -1,0 +1,62 @@
+﻿@model IndexViewModel
+
+@{
+    Layout = "~/Views/Shared/_HatLayout.cshtml";
+}
+
+@section styles {
+    <link href="@Url.Content("~/css/index.css")" rel="stylesheet">
+}
+
+
+<div class="row">
+    <div class="col">
+        <div>
+            <h4>Добро пожаловать в убежище, @Model.User.UserName</h4>
+            <h5>У тебя уже накоплено <span id="current_score">@Model.User.CurrentScore</span> крышек</h5>
+            <h5>Всего ты добыл <span id="record_score">@Model.User.RecordScore</span> крышек</h5>
+            <h5>С одной ходки в пустош ты зарабатываешь <span id="profit_per_click">@Model.User.ProfitPerClick</span> крышек</h5>
+            <h5>Твои подчиненные ежесекундно приносят <span id="profit_per_second">@Model.User.ProfitPerSecond</span> крышек</h5>
+            <h5>Красная зона приносит в <span id="red_zone_text">@Model.User.MultRedZone</span> раз больше крышек</h5>
+        </div>
+        <div class="row flex-wrap">
+            <h3>Бусты</h3>
+            <div class="d-flex flex-wrap justify-content-start">
+                @foreach (var boost in Model.Boosts)
+                {
+                    var userBoost = Model.User.UserBoosts.FirstOrDefault(ub => ub.BoostId == boost.Id);
+                    var mult_boost = userBoost?.Quantity+2 ?? 2;
+                    var price = userBoost?.CurrentPrice ?? boost.Price;
+                    var quantity = userBoost?.Quantity ?? 0;
+
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 p-2">
+                        <button class="boost-button border-0 bg-secondary w-100">
+                            <span class="boost-id" hidden>@boost.Id</span>
+                            <h5>@boost.Title</h5>
+                            <img src="data:image/png;base64, @Convert.ToBase64String(boost.Image)" class="img-fluid" />
+                            <h6 class="boost-price-string">Цена: <span class="boost-price">@price</span></h6>
+                            <h6>
+                                Доход: @boost.Profit
+                                @if (boost.IsAuto)
+                                {
+                                    <span> в сек</span>
+                                }
+                            </h6>
+                            <h6> Кол-во: <span class="boost-quantity">@quantity</span></h6>
+                            @* <h6> Множ-ль кликов: <span class="boost_mult">@mult_boost</span></h6> *@
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col">
+         <button id="clickitem" class="click-item bg-transparent border-0">
+             <img class="img-fluid" src="~/map2.png" />
+         </button>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/index.js"></script>
+}

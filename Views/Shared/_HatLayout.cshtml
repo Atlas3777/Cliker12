@@ -1,0 +1,34 @@
+﻿@section styles {
+    @await RenderSectionAsync("styles", required: false)
+}
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+    <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+        <a class="navbar-brand" asp-action="Index" asp-controller="Home">
+            <h2>Fallout Cliker</h2>
+        </a>
+
+        <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+            <li>
+                <a class="nav-link" asp-action="Leaderboard" asp-controller="User">Лидерборд</a>
+            </li>
+            <li>
+                <a class="nav-link" asp-action="Settings" asp-controller="User">Настройки</a>
+            </li>
+        </ul>
+
+        <form class="col-md-3 text-end" asp-action="Logout" asp-controller="Auth">
+            <input type="submit" class="btn btn-secondary" value="Выйти из аккаунта" />
+        </form>
+    </header>
+    @RenderBody()
+</div>
+
+@section scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    @await RenderSectionAsync("scripts", required: false)
+}
