@@ -1,3 +1,4 @@
+using Amazon.S3;
 using CSharpClicker.Web.Infrastructure.Abstractions;
 using CSharpClicker.Web.Infrastructure.DataAccess;
 using CSharpClicker.Web.Infrastructure.Implementations;
@@ -11,13 +12,12 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        ConfigureServices(builder.Services);
+        ConfigureServices(builder.Services, builder.Configuration);
 
         var app = builder.Build();
 
         using var scope = app.Services.CreateScope();
         using var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
 
         DbContextInitializer.InitializeDbContext(appDbContext);
             
@@ -38,7 +38,7 @@ public class Program
         app.Run();
     }
 
-    private static void ConfigureServices(IServiceCollection services)
+    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddHealthChecks();
         services.AddSwaggerGen();
@@ -59,7 +59,10 @@ public class Program
             options.LoginPath = "/auth/login";
         });
         
+        services.AddDefaultAWSOptions(configuration.GetAWSOptions());
+        services.AddAWSService<IAmazonS3>();
+        services.AddScoped<IFileStorage, S3FileStorage>();
         
-        DbContextInitializer.AddAppDbContext(services);
+        DbContextInitializer.AddAppDbContext(services, configuration);
     }
 }

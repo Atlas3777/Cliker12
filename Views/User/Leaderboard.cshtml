@@ -28,13 +28,13 @@
                 <tr>
                     <th scope="row">@place</th>
                     <td>
-                        @if (user.Avatar.Length == 0)
+                        @if (user.AvatarUrl is null)
                         {
                             <img src="~/fallout_boy2.png" height="20" width="20" />
                         }
                         else
                         {
-                            <img src="data:image/png;base64, @Convert.ToBase64String(user.Avatar)" height="20" width="20" />
+                            <img src="@user.AvatarUrl" height="20" width="20" />
                         }
                         <span>@user.UserName</span>
                     </td>
