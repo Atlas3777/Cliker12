@@ -6,35 +6,23 @@ namespace CSharpClicker.Web.Initializers;
 
 public static class DbContextInitializer
 {
-    public static void AddAppDbContext(IServiceCollection services)
+    public static void AddAppDbContext(IServiceCollection services, IConfiguration configuration)
     {
-        var pathToDbFile = GetPathToDbFile();
-        services
-            .AddDbContext<AppDbContext>(options => options
-                .UseSqlite($"Data Source={pathToDbFile}"));
+        // Берем строку подключения из переменных окружения (для Docker/Cloud)
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        string GetPathToDbFile()
-        {
-            var applicationFolder = Path.Combine(Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData), "CSharpClicker");
-
-            if (!Directory.Exists(applicationFolder))
-            {
-                Directory.CreateDirectory(applicationFolder);
-            }
-
-            return Path.Combine(applicationFolder, "CSharpClicker.db");
-        }
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(connectionString));
     }
 
     public static void InitializeDbContext(AppDbContext appDbContext)
     {
-        const string Boost1 = "Бродяга";
-        const string Boost2 = "Бита";
-        const string Boost3 = "Лазерный мушкет";
-        const string Boost4 = "Паладин";
-        const string Boost5 = "Гатлинг Лазер";
-        const string Boost6 = "Множитель кликов";
+        const string Boost1 = "brodaga";
+        const string Boost2 = "bita";
+        const string Boost3 = "laser";
+        const string Boost4 = "pal";
+        const string Boost5 = "gat";
+        const string Boost6 = "mult";
 
         appDbContext.Database.Migrate();
        
@@ -48,14 +36,12 @@ public static class DbContextInitializer
         AddBoostIfNotExist(Boost5, price: 100000, profit: 1000);
         AddBoostIfNotExist(Boost6, price: 250, profit: 0, mult: 1);
 
-        AddRandomUsers();
+        //AddRandomUsers();
 
         appDbContext.SaveChanges();
 
         void AddRandomUsers()
         {
-            return;
-
             const int limit = 130000534;
             const int asciLimit = 126;
             const int symbolsLimit = 15;
@@ -104,5 +90,4 @@ public static class DbContextInitializer
                 });
             }
         }
-    }
-}
+}}

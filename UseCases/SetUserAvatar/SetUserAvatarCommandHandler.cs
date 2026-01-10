@@ -1,4 +1,5 @@
 ﻿using CSharpClicker.Web.Infrastructure.Abstractions;
+using CSharpClicker.Web.Infrastructure.Implementations; // Добавь using
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,26 +9,29 @@ public class SetUserAvatarCommandHandler : IRequestHandler<SetUserAvatarCommand,
 {
     private readonly ICurrentUserAccessor currentUserAccessor;
     private readonly IAppDbContext appDbContext;
+    private readonly IFileStorage fileStorage; // Инжектим наш сервис
 
-    public SetUserAvatarCommandHandler(ICurrentUserAccessor currentUserAccessor, IAppDbContext appDbContext)
+    public SetUserAvatarCommandHandler(
+        ICurrentUserAccessor currentUserAccessor, 
+        IAppDbContext appDbContext,
+        IFileStorage fileStorage)
     {
         this.currentUserAccessor = currentUserAccessor;
         this.appDbContext = appDbContext;
+        this.fileStorage = fileStorage;
     }
 
     public async Task<Unit> Handle(SetUserAvatarCommand request, CancellationToken cancellationToken)
     {
         var userId = currentUserAccessor.GetCurrentUserId();
-
         var user = await appDbContext.ApplicationUsers.FirstAsync(user => user.Id == userId, cancellationToken);
 
-        using var memoryMemory = new MemoryStream();
-        await request.Avatar.CopyToAsync(memoryMemory, cancellationToken);
+        using var stream = request.Avatar.OpenReadStream();
+        var url = await fileStorage.UploadFileAsync(stream, request.Avatar.FileName, request.Avatar.ContentType);
 
-        user.Avatar = memoryMemory.ToArray();
-
+        user.AvatarUrl = url; 
+        
         await appDbContext.SaveChangesAsync(cancellationToken);
-
         return Unit.Value;
     }
 }

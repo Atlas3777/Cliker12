@@ -4,5 +4,5 @@ public record UserSettingsDto
 {
     public string UserName { get; init; }
 
-    public byte[] Avatar { get; init; }
+    public string? AvatarUrl { get; init; }
 }

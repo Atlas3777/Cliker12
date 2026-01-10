@@ -3,8 +3,7 @@
 public class LeaderboardUserDto
 {
     public string UserName { get; init; }
-
     public long RecordScore { get; init; }
 
-    public byte[] Avatar { get; init; } = [];
+    public string? AvatarUrl { get; init; }
 }
