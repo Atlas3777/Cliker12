@@ -158,30 +158,41 @@ resource "yandex_compute_instance" "clicker_vm" {
   service_account_id = yandex_iam_service_account.sa.id
 
   metadata = {
-    docker-container-declaration = <<-EOT
-      spec:
-        containers:
-        - name: clicker-web
-          image: cr.yandex/${yandex_container_registry.registry.id}/clicker-web:v6
-          securityContext:
-            privileged: false
-          env:
-            - name: YandexCloud__BucketName
-              value: ${yandex_storage_bucket.assets.bucket}
-            - name: AWS__ServiceURL
-              value: https://storage.yandexcloud.net
-            - name: AWS__AccessKey
-              value: ${yandex_iam_service_account_static_access_key.sa_static_key.access_key}
-            - name: AWS__SecretKey
-              value: ${yandex_iam_service_account_static_access_key.sa_static_key.secret_key}
-            - name: ConnectionStrings__DefaultConnection
-              value: "Host=c-${yandex_mdb_postgresql_cluster.pg_cluster.id}.rw.mdb.yandexcloud.net;Port=6432;Database=clickerdb;Username=clickeruser;Password=${var.db_password};SSL Mode=Require;Trust Server Certificate=true"
-          stdin: false
-          tty: false
-    EOT
-    # Добавь сюда свой SSH ключ, чтобы заходить на сервер через консоль
-    ssh-keys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6BFSvU6sGCNrt7/yOmlyj5qIdoIb3lWmt7mPwu/dmK artem@DESKTOP-SNP8QAV"
-  }
+      ssh-keys = "artem:ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6BFSvU6sGCNrt7/yOmlyj5qIdoIb3lWmt7mPwu/dmK artem@DESKTOP-SNP8QAV"
+      docker-container-declaration = <<-EOT
+        spec:
+          containers:
+          - name: clicker-web
+            image: cr.yandex/${yandex_container_registry.registry.id}/clicker-web:v5
+            ports:
+              - containerPort: 8080
+                hostPort: 8080
+            securityContext:
+              privileged: false
+            env:
+              - name: YandexCloud__BucketName
+                value: ${yandex_storage_bucket.assets.bucket}
+              - name: AWS__Region
+                value: ru-central1
+              - name: AWS__ServiceURL
+                value: https://s3.yandexcloud.net
+              - name: AWS__AccessKey
+                value: "${yandex_iam_service_account_static_access_key.sa_static_key.access_key}"
+              - name: AWS__SecretKey
+                value: "${yandex_iam_service_account_static_access_key.sa_static_key.secret_key}"
+              - name: ConnectionStrings__DefaultConnection
+                value: "Host=c-${yandex_mdb_postgresql_cluster.pg_cluster.id}.rw.mdb.yandexcloud.net;Port=6432;Database=clickerdb;Username=clickeruser;Password=${var.db_password};SSL Mode=Require;Trust Server Certificate=true"
+            volumeMounts:
+              - name: dp-keys
+                mountPath: /root/.aspnet/DataProtection-Keys
+            stdin: false
+            tty: false
+          volumes:
+            - name: dp-keys
+              hostPath:
+                path: /home/artem/aspnet-keys
+      EOT
+    }
 }
 
 # === 7. Обновленные Output ===

@@ -1,3 +1,4 @@
+using Amazon;
 using Amazon.S3;
 using CSharpClicker.Web.Infrastructure.Abstractions;
 using CSharpClicker.Web.Infrastructure.DataAccess;
@@ -43,21 +44,27 @@ public class Program
         services.AddHealthChecks();
         services.AddSwaggerGen();
         
-        var awsOptions = configuration.GetAWSOptions<Amazon.S3.AmazonS3Config>();
-        awsOptions.DefaultClientConfig.ServiceURL = "https://storage.yandexcloud.net";
+        var credentials = new Amazon.Runtime.BasicAWSCredentials(
+            configuration["AWS:AccessKey"], 
+            configuration["AWS:SecretKey"]
+        );
         
-        var s3Config = awsOptions.DefaultClientConfig as Amazon.S3.AmazonS3Config;
-        if (s3Config != null)
+        var s3Config = new AmazonS3Config
         {
-            s3Config.ForcePathStyle = true;
-        }
+            ServiceURL = configuration["AWS:ServiceURL"],
+            // Это критично для Yandex Cloud!
+            ForcePathStyle = true 
+        };
+        services.AddSingleton<IAmazonS3>(new AmazonS3Client(credentials, s3Config));
         
+        var awsOptions = configuration.GetAWSOptions<AmazonS3Config>();
+     
         services.AddDefaultAWSOptions(awsOptions);
-        services.AddAWSService<IAmazonS3>();
+        //services.AddAWSService<IAmazonS3>();
 
         services.AddScoped<IFileStorage, S3FileStorage>();
         
-        
+            
         services.AddAutoMapper(typeof(Program).Assembly);
         services.AddMediatR(o => o.RegisterServicesFromAssembly(typeof(Program).Assembly));
 

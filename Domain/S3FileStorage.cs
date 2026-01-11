@@ -16,24 +16,32 @@ public class S3FileStorage : IFileStorage
     public S3FileStorage(IAmazonS3 s3Client, IConfiguration configuration)
     {
         _s3Client = s3Client;
-        _bucketName = configuration["YandexCloud:BucketName"] 
+        _bucketName = configuration["YandexCloud:BucketName"]
                       ?? throw new ArgumentNullException("BucketName not configured");
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType)
     {
-        var key = $"avatars/{Guid.NewGuid()}_{fileName}";
-        
+        var ext = Path.GetExtension(fileName);
+        var key = $"avatars/{Guid.NewGuid()}{ext}";
+
         var request = new PutObjectRequest
         {
             BucketName = _bucketName,
             Key = key,
             InputStream = fileStream,
             ContentType = contentType,
-            CannedACL = S3CannedACL.PublicRead 
         };
-
-        await _s3Client.PutObjectAsync(request);
+        
+        try
+        {
+            await _s3Client.PutObjectAsync(request);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error uploading object: {ex.Message}");
+            throw;
+        }
 
         return $"https://storage.yandexcloud.net/{_bucketName}/{key}";
     }
