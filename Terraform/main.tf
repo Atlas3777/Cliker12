@@ -202,15 +202,51 @@ output "vm_public_ip" {
   value       = yandex_compute_instance.clicker_vm.network_interface.0.nat_ip_address
 }
 
-# output "game_url" {
-#   value = yandex_serverless_container.clicker_app.url
-# }
-# === 7. Делаем контейнер публичным ===
-# resource "yandex_serverless_container_iam_binding" "clicker_public_access" {
-#   container_id = yandex_serverless_container.clicker_app.id
-#   role         = "serverless.containers.invoker"
-#   
-#   members = [
-#     "system:allUsers",
-#   ]
-# }
+# === 8. Сетевой балансировщик (Network Load Balancer) ===
+
+# Группа целевых ресурсов (куда перенаправлять трафик)
+resource "yandex_lb_target_group" "clicker_tg" {
+  name      = "clicker-target-group"
+  folder_id = var.yc_folder_id
+
+  target {
+    subnet_id = yandex_vpc_subnet.clicker_subnet.id
+    address   = yandex_compute_instance.clicker_vm.network_interface.0.ip_address
+  }
+}
+
+# Сам балансировщик
+resource "yandex_lb_network_load_balancer" "clicker_lb" {
+  name      = "clicker-load-balancer"
+  folder_id = var.yc_folder_id
+
+  listener {
+    name = "http-listener"
+    port = 80             # Входной порт (чтобы не писать :8080 в браузере)
+    target_port = 8080    # Порт на виртуалке (где работает контейнер)
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  attached_target_group {
+    target_group_id = yandex_lb_target_group.clicker_tg.id
+
+    # Проверка здоровья (Health Check)
+    # Балансировщик будет пинговать приложение, чтобы убедиться, что оно живо
+    healthcheck {
+      name = "http-check"
+      http_options {
+        port = 8080
+        path = "/auth/login"
+      }
+    }
+  }
+}
+
+# === 9. Новый Output для балансировщика ===
+
+output "load_balancer_ip" {
+  description = "Красивый IP балансировщика (порт 80)"
+  value       = tolist(tolist(yandex_lb_network_load_balancer.clicker_lb.listener)[0].external_address_spec)[0].address
+}
