@@ -42,7 +42,22 @@ public class Program
     {
         services.AddHealthChecks();
         services.AddSwaggerGen();
+        
+        var awsOptions = configuration.GetAWSOptions<Amazon.S3.AmazonS3Config>();
+        awsOptions.DefaultClientConfig.ServiceURL = "https://storage.yandexcloud.net";
+        
+        var s3Config = awsOptions.DefaultClientConfig as Amazon.S3.AmazonS3Config;
+        if (s3Config != null)
+        {
+            s3Config.ForcePathStyle = true;
+        }
+        
+        services.AddDefaultAWSOptions(awsOptions);
+        services.AddAWSService<IAmazonS3>();
 
+        services.AddScoped<IFileStorage, S3FileStorage>();
+        
+        
         services.AddAutoMapper(typeof(Program).Assembly);
         services.AddMediatR(o => o.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
@@ -58,10 +73,6 @@ public class Program
         {
             options.LoginPath = "/auth/login";
         });
-        
-        services.AddDefaultAWSOptions(configuration.GetAWSOptions());
-        services.AddAWSService<IAmazonS3>();
-        services.AddScoped<IFileStorage, S3FileStorage>();
         
         DbContextInitializer.AddAppDbContext(services, configuration);
     }

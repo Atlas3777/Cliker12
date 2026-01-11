@@ -9,7 +9,7 @@ public class SetUserAvatarCommandHandler : IRequestHandler<SetUserAvatarCommand,
 {
     private readonly ICurrentUserAccessor currentUserAccessor;
     private readonly IAppDbContext appDbContext;
-    private readonly IFileStorage fileStorage; // Инжектим наш сервис
+    private readonly IFileStorage fileStorage; 
 
     public SetUserAvatarCommandHandler(
         ICurrentUserAccessor currentUserAccessor, 
